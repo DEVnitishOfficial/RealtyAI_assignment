@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
+import toast from 'react-hot-toast'
 
-export default function Recorder ({ onBlobReady }) {
+export default function useRecorder ({ onBlobReady }) {
   const mediaRecorderRef = useRef(null)
   const chunksRef = useRef([])
   const [isRecording, setIsRecording] = useState(false)
@@ -27,6 +28,7 @@ export default function Recorder ({ onBlobReady }) {
   const stop = () => {
     mediaRecorderRef.current?.stop()
     setIsRecording(false)
+    toast.success("Recording stopped, uploading your recording. Please wait...")
   }
 
   return { start, stop, isRecording }

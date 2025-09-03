@@ -1,9 +1,8 @@
 import { useEffect, useState } from 'react'
 
-export default function NoteEditor ({ open, onClose, onSave, note }) {
+export default function NoteEditor ({ open, onClose, onSave, note, loading }) {
   const [title, setTitle] = useState('')
   const [transcript, setTranscript] = useState('')
-  
 
   useEffect(() => {
     if (open && note) {
@@ -42,7 +41,7 @@ export default function NoteEditor ({ open, onClose, onSave, note }) {
             onClick={() => onSave({ title, transcript })}
             className='px-3 py-2 rounded-lg bg-black text-white'
           >
-            Save Changes
+          {loading ? 'Saving...' : 'Save Changes'}
           </button>
         </div>
       </div>

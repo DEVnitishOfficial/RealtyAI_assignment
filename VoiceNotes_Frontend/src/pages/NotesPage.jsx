@@ -4,13 +4,14 @@ import useNotes from '../hooks/useNotes'
 import Header from '../components/Header'
 import NoteCard from '../components/NoteCard'
 import NoteEditor from '../components/NoteEditor'
-import Recorder from '../components/Recorder'
 import toast, { Toaster } from 'react-hot-toast';
+import useRecorder from '../hooks/useRecorder'
 
 export default function NotesPage () {
   const {
     notes,
     loading,
+    setLoading,
     error,
     uploadAndTranscribe,
     saveEdit,
@@ -20,6 +21,7 @@ export default function NotesPage () {
 
   const [previewUrl, setPreviewUrl] = useState(null)
   const [summarizingNoteId, setSummarizingNoteId] = useState(null);
+  // const [loading, setLoading] = useState(false);
 
   // header / upload states
   const [pickedFile, setPickedFile] = useState(null)
@@ -30,10 +32,10 @@ export default function NotesPage () {
   const [editing, setEditing] = useState(false)
   const [current, setCurrent] = useState(null)
 
-  // initialize recorder with an onBlobReady callback
-  // Recorder (as implemented in repo) returns { start, stop, isRecording }
-  // and internally uses onBlobReady to hand back a blob when recording stops.
-  const recorder = Recorder({
+
+// NotesPage.jsx provides the onBlobReady function to the useRecorder hook.
+// The useRecorder hook uses this provided function as a "callback" to return the blob and url to NotesPage.jsx when the recording is complete.
+  const recorder = useRecorder({
     onBlobReady: async (blob, url) => {
       setPreviewUrl(url)
       try {
@@ -50,8 +52,6 @@ export default function NotesPage () {
       }
     }
   })
-
-  console.log('print the recorder object', recorder)
 
   // file picker change
   const onPickFile = e => {
@@ -82,6 +82,7 @@ export default function NotesPage () {
 
   // save edits
   const save = async updates => {
+    setLoading(true)
     try {
       const id = current?._id || current?.id
       if (!id) {
@@ -91,9 +92,12 @@ export default function NotesPage () {
       await saveEdit(id, updates)
       setEditing(false)
       setCurrent(null)
+      toast.success("Changes saved successfully.")
     } catch (err) {
       console.error('Save edit failed:', err)
       alert('Failed to save changes.')
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -102,6 +106,7 @@ export default function NotesPage () {
     if (!confirm('Delete this note?')) return
     try {
       await remove(id)
+      toast.success("Note deleted successfully.")
     } catch (err) {
       console.error('Delete failed:', err)
       alert('Failed to delete note.')
@@ -109,17 +114,29 @@ export default function NotesPage () {
   }
 
   // summarize handler (passed to NoteCard)
-  const handleSummarize = async id => {
-    try {
-      setSummarizingNoteId(id);
-      await summarize(id)
-    } catch (err) {
-      console.error('Summarize failed:', err)
-      alert('Failed to generate summary.')
-    } finally {
-      setSummarizingNoteId(null);
+ const handleSummarize = async id => {
+  let toastId;
+
+  try {
+    setSummarizingNoteId(id);
+    toastId = toast.loading("Generating summary, please wait...");
+
+    await summarize(id);
+
+    // 2. Use the ID to update the loading toast to a success toast
+    toast.success("Summary generated successfully.", { id: toastId });
+
+  } catch (err) {
+    console.error('Summarize failed:', err);
+    alert('Failed to generate summary.');
+    if (toastId) {
+      toast.error("Failed to generate summary.", { id: toastId });
     }
+
+  } finally {
+    setSummarizingNoteId(null);
   }
+}
 
   return (
     <div className='min-h-screen bg-neutral-50 text-neutral-900'>
@@ -142,9 +159,8 @@ export default function NotesPage () {
       )}
 
       <main className='max-w-3xl mx-auto px-4 py-6 mt-10'>
-        {loading && (
+        {/* {loading && (
           <div className='text-sm text-neutral-500 mb-3'>
-            {toast.success("Loading...")}
             {
               <svg
                 aria-hidden='true'
@@ -165,9 +181,12 @@ export default function NotesPage () {
               </svg>
             }
           </div>
-        )}
+        )} */}
         {error && (
+          <> 
           <div className='text-sm text-red-600 mb-3'>{String(error)}</div>
+          {/* <div>{toast.error(String(error), { duration: 4000 })}</div> */}
+          </>
         )}
 
         {/* Show picked file info + quick upload */}
@@ -219,6 +238,7 @@ export default function NotesPage () {
         onClose={() => setEditing(false)}
         onSave={save}
         note={current}
+        loading={loading}
       />
     </div>
   )

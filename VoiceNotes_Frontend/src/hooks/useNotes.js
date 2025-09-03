@@ -6,6 +6,7 @@ import {
   deleteNote,
   generateSummary,
 } from "../lib/api";
+import toast from "react-hot-toast";
 
 export default function useNotes() {
   const [notes, setNotes] = useState([]);
@@ -13,12 +14,14 @@ export default function useNotes() {
   const [error, setError] = useState(null);
 
   const load = useCallback(async () => {
+    let toastId;
     try {
       setLoading(true);
+      toastId = toast.loading("Loading notes...");
       const res = await getNotes();
-      
       const list = Array.isArray(res) ? res : res?.data || [];
       setNotes(list);
+      toast.success("Notes loaded successfully.", { id: toastId });
       setError(null);
     } catch (e) {
       setError(e?.response?.data?.error || e.message);
@@ -36,8 +39,10 @@ export default function useNotes() {
     try {
       await transcribeAudio(file, title || "New Voice Note");
       await load();
+      toast.success("Recording uploaded and transcribed successfully.");
     } catch (e) {
       setError(e?.response?.data?.error || e.message);
+      toast.error(e?.response?.data?.error || e.message);
     } finally {
       setLoading(false);
     }
@@ -74,6 +79,7 @@ export default function useNotes() {
       await load();
     } catch (e) {
       setError(e?.response?.data?.error || e.message);
+      toast.error(String(e?.response?.data?.error || e.message));
     } finally {
       setLoading(false);
     }
@@ -82,6 +88,7 @@ export default function useNotes() {
   return {
     notes,
     loading,
+    setLoading,
     error,
     load,
     uploadAndTranscribe,
