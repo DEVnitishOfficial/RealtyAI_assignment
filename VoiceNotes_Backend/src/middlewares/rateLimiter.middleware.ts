@@ -1,8 +1,8 @@
 import rateLimit from "express-rate-limit";
 
 export const transcribeLimiter = rateLimit({
-  windowMs: 60 * 5000, // 1 minute window
-  max: 1,              
+  windowMs: 60 * 1000, // 1 minute window
+  max: 2,              
   message: {
     error: "Too many transcription requests from this IP, please try again after a minute.",
   },
@@ -11,7 +11,7 @@ export const transcribeLimiter = rateLimit({
 });
 
 export const summaryLimiter = rateLimit({
-  windowMs: 60 * 5000, // 1 minute window
+  windowMs: 60 * 1000, // 1 minute window
   max: 2,              
   message: {
     error: "Too many summary requests from this IP, please try again after a minute.",
