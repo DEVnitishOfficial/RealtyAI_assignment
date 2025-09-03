@@ -159,7 +159,7 @@ export default function NotesPage () {
       )}
 
       <main className='max-w-3xl mx-auto px-4 py-6 mt-10'>
-        {/* {loading && (
+        {loading && (
           <div className='text-sm text-neutral-500 mb-3'>
             {
               <svg
@@ -181,11 +181,10 @@ export default function NotesPage () {
               </svg>
             }
           </div>
-        )} */}
+        )}
         {error && (
           <> 
           <div className='text-sm text-red-600 mb-3'>{String(error)}</div>
-          {/* <div>{toast.error(String(error), { duration: 4000 })}</div> */}
           </>
         )}
 
