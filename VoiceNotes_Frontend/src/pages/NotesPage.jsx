@@ -121,7 +121,9 @@ export default function NotesPage () {
     setSummarizingNoteId(id);
     toastId = toast.loading("Generating summary, please wait...");
 
-    await summarize(id);
+   const summary =  await summarize(id);
+   console.log('see the summary>>>>',summary)
+
 
     // 2. Use the ID to update the loading toast to a success toast
     toast.success("Summary generated successfully.", { id: toastId });
